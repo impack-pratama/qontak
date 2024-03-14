@@ -6,7 +6,18 @@ Currently this library under development
 
 # Example
 ```
-    token := "{your token from qontak}"
+package main
+
+import (
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/impack-pratama/qontak/whatsapp"
+	"github.com/impack-pratama/qontak/whatsapp/broadcasts/direct_message"
+)
+
+func main() {
+
+    	token := "{your token from qontak}"
 
 	service := whatsapp.NewService(token)
 	broadcastService := service.GetBroadCastService()
@@ -41,5 +52,5 @@ Currently this library under development
 		return
 	}
 	fmt.Println(resp)
-
+}
 ```
