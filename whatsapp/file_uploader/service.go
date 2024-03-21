@@ -11,6 +11,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"strings"
 )
 
@@ -40,11 +41,10 @@ func (s *service) UploadFromUrl(ctx context.Context, filename string, url string
 	}
 	defer resp.Body.Close()
 
-	if fw, err = writer.CreateFormFile("file", filename); err != nil {
+	if fw, err = s.CreateWriter(writer, "file", filename, resp.Header.Get("content-type")); err != nil {
 		ctx.Err()
 		return nil, err
 	}
-
 	if _, err = io.Copy(fw, resp.Body); err != nil {
 		ctx.Err()
 		return nil, err
@@ -60,10 +60,22 @@ func (s *service) UploadFromUrl(ctx context.Context, filename string, url string
 		err = json.NewDecoder(resp.Body).Decode(&errorResponse)
 		return nil, errors.New(strings.Join(errorResponse.Error.Messages, ", "))
 	}
+
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	return &r, err
 
+}
+
+func (s *service) CreateWriter(writer *multipart.Writer, fieldname, filename string, contentType string) (io.Writer, error) {
+	var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+	h := make(textproto.MIMEHeader)
+	h.Set("Content-Disposition",
+		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+			quoteEscaper.Replace(fieldname), quoteEscaper.Replace(filename)))
+	h.Set("Content-Type", contentType)
+	return writer.CreatePart(h)
 }
 
 func (s *service) UploadFromFile(ctx context.Context, file string) (response *UploadResponse, err error) {
