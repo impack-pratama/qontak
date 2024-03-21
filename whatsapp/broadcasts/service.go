@@ -28,7 +28,7 @@ func (s *service) SendDirectMessage(request *direct_message.SendDirectMessageReq
 	var r direct_message.SendDirectMessageResponse
 
 	uri = fmt.Sprint(s.baseUrl, URI_SEND_DIRECT_MESSAGE)
-	if resp, err = s.client.Execute(http.MethodPost, s.token, uri, request.ToJSON()); err != nil {
+	if resp, err = s.client.Execute(http.MethodPost, s.token, uri, request.ToJSON(), pkg.CONTENT_TYPE_JSON); err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusCreated {
