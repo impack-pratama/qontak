@@ -17,6 +17,8 @@ import (
 
 const (
 	QONTAK_FILE_UPLOADER_URI = "/file_uploader"
+	DEFAULT_CONTENT_TYPE     = "application/octet-stream"
+	CONTENT_TYPE_PDF         = "application/pdf"
 )
 
 type service struct {
@@ -25,7 +27,7 @@ type service struct {
 	baseUrl string
 }
 
-func (s *service) UploadFromUrl(ctx context.Context, filename string, url string) (response *UploadResponse, err error) {
+func (s *service) UploadFromUrlWithContentType(ctx context.Context, filename string, url string, contentType string) (response *UploadResponse, err error) {
 	var resp *http.Response
 	var fw io.Writer
 	var errorResponse errs.DefaultErrorResponse
@@ -41,7 +43,11 @@ func (s *service) UploadFromUrl(ctx context.Context, filename string, url string
 	}
 	defer resp.Body.Close()
 
-	if fw, err = s.CreateWriter(writer, "file", filename, resp.Header.Get("content-type")); err != nil {
+	if contentType == "" {
+		contentType = DEFAULT_CONTENT_TYPE
+	}
+
+	if fw, err = s.CreateWriter(writer, "file", filename, contentType); err != nil {
 		ctx.Err()
 		return nil, err
 	}
@@ -64,7 +70,16 @@ func (s *service) UploadFromUrl(ctx context.Context, filename string, url string
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	return &r, err
+}
 
+func (s *service) UploadFromUrl(ctx context.Context, filename string, url string) (response *UploadResponse, err error) {
+	var resp *http.Response
+	if resp, err = http.Get(url); err != nil {
+		ctx.Err()
+		return nil, err
+	}
+
+	return s.UploadFromUrlWithContentType(ctx, filename, url, resp.Header.Get("content-type"))
 }
 
 func (s *service) CreateWriter(writer *multipart.Writer, fieldname, filename string, contentType string) (io.Writer, error) {
@@ -76,11 +91,6 @@ func (s *service) CreateWriter(writer *multipart.Writer, fieldname, filename str
 			quoteEscaper.Replace(fieldname), quoteEscaper.Replace(filename)))
 	h.Set("Content-Type", contentType)
 	return writer.CreatePart(h)
-}
-
-func (s *service) UploadFromFile(ctx context.Context, file string) (response *UploadResponse, err error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func NewService(client pkg.Client, token string, baseUrl string) Service {
