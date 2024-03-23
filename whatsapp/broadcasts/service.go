@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/dongri/phonenumber"
 	"github.com/impack-pratama/qontak/pkg"
 	errs "github.com/impack-pratama/qontak/pkg/errors"
 	"github.com/impack-pratama/qontak/whatsapp/broadcasts/direct_message"
@@ -26,6 +27,8 @@ func (s *service) SendDirectMessage(request *direct_message.SendDirectMessageReq
 	var uri string
 	var errorResponse errs.DefaultErrorResponse
 	var r direct_message.SendDirectMessageResponse
+
+	request.ToNumber = phonenumber.Parse(request.ToNumber, "ID")
 
 	uri = fmt.Sprint(s.baseUrl, URI_SEND_DIRECT_MESSAGE)
 	if resp, err = s.client.Execute(http.MethodPost, s.token, uri, request.ToJSON(), pkg.CONTENT_TYPE_JSON); err != nil {
