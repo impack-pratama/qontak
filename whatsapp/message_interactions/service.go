@@ -18,8 +18,10 @@ type service struct {
 }
 
 type EnableDisableMessageInteractions struct {
-	StatusTemplate bool   `json:"status_template"`
-	Url            string `json:"url"`
+	ReceiveMessageFromAgent    bool   `json:"receive_message_from_agent"`
+	ReceiveMessageFromCustomer bool   `json:"receive_message_from_customer"`
+	StatusMessage              bool   `json:"status_message"`
+	Url                        string `json:"url"` //Webhook URL
 }
 
 func (e *EnableDisableMessageInteractions) ToJSON() []byte {
@@ -29,7 +31,9 @@ func (e *EnableDisableMessageInteractions) ToJSON() []byte {
 
 func (s *service) EnableMessageInteractions(request *EnableMessageInteractionsRequest) (err error) {
 	payload := new(EnableDisableMessageInteractions)
-	payload.StatusTemplate = true
+	payload.ReceiveMessageFromCustomer = request.ReceiveMessageFromCustomer
+	payload.ReceiveMessageFromAgent = request.ReceiveMessageFromAgent
+	payload.StatusMessage = true
 	payload.Url = request.Url
 
 	return s.enableOrDisableMessageInteraction(payload)
@@ -37,7 +41,9 @@ func (s *service) EnableMessageInteractions(request *EnableMessageInteractionsRe
 
 func (s *service) DisableMessageInteractions(request *DisableMessageInteractionsRequest) (err error) {
 	payload := new(EnableDisableMessageInteractions)
-	payload.StatusTemplate = true
+	payload.ReceiveMessageFromCustomer = request.ReceiveMessageFromCustomer
+	payload.ReceiveMessageFromAgent = request.ReceiveMessageFromAgent
+	payload.StatusMessage = false
 	payload.Url = request.Url
 
 	return s.enableOrDisableMessageInteraction(payload)

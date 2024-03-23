@@ -1,9 +1,13 @@
 package message_interactions
 
 type EnableMessageInteractionsRequest struct {
-	Url string
+	ReceiveMessageFromCustomer bool
+	ReceiveMessageFromAgent    bool
+	Url                        string
 }
 
 type DisableMessageInteractionsRequest struct {
-	Url string
+	ReceiveMessageFromCustomer bool
+	ReceiveMessageFromAgent    bool
+	Url                        string
 }
