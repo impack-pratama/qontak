@@ -54,3 +54,36 @@ func main() {
 	fmt.Println(resp)
 }
 ```
+
+# File Upload Example
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/impack-pratama/qontak/whatsapp"
+	"github.com/impack-pratama/qontak/whatsapp/file_uploader"
+)
+
+func main() {
+	token := "{your token from qontak}"
+	service := whatsapp.NewService(token)
+	uploader := service.GetFileUploaderService()
+
+	// Upload from S3
+	s3Config := file_uploader.S3Config{
+		AccessKey: "YOUR_ACCESS_KEY",
+		SecretKey: "YOUR_SECRET_KEY",
+		Region:    "ap-southeast-1",
+		Bucket:    "my-bucket",
+		Key:       "path/to/file.pdf",
+	}
+	resp, err := uploader.UploadFromS3(context.Background(), "file.pdf", s3Config)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(resp.Data.Url)
+}
+```
