@@ -153,6 +153,45 @@ func (s *service) UploadFromCloudflareR2(ctx context.Context, filename string, r
 	return s.upload(ctx, filename, output.Body, contentType)
 }
 
+func (s *service) UploadFromMinio(ctx context.Context, filename string, minioConfig MinioConfig) (response *UploadResponse, err error) {
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion(minioConfig.Region),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(minioConfig.AccessKey, minioConfig.SecretKey, "")),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		endpoint := minioConfig.Endpoint
+		if !strings.HasPrefix(endpoint, "http://") && !strings.HasPrefix(endpoint, "https://") {
+			if minioConfig.UseSSL {
+				endpoint = "https://" + endpoint
+			} else {
+				endpoint = "http://" + endpoint
+			}
+		}
+		o.BaseEndpoint = aws.String(endpoint)
+		o.UsePathStyle = true
+	})
+
+	output, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(minioConfig.Bucket),
+		Key:    aws.String(minioConfig.Key),
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer output.Body.Close()
+
+	contentType := aws.ToString(output.ContentType)
+	if contentType == "" {
+		contentType = DEFAULT_CONTENT_TYPE
+	}
+
+	return s.upload(ctx, filename, output.Body, contentType)
+}
+
 func (s *service) CreateWriter(writer *multipart.Writer, fieldname, filename string, contentType string) (io.Writer, error) {
 	var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 

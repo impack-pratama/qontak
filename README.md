@@ -85,5 +85,22 @@ func main() {
 		return
 	}
 	fmt.Println(resp.Data.Url)
+
+	// Upload from Minio
+	minioConfig := file_uploader.MinioConfig{
+		AccessKey: "YOUR_ACCESS_KEY",
+		SecretKey: "YOUR_SECRET_KEY",
+		Endpoint:  "localhost:9000",
+		Region:    "us-east-1",
+		Bucket:    "my-bucket",
+		Key:       "path/to/file.pdf",
+		UseSSL:    false,
+	}
+	resp, err = uploader.UploadFromMinio(context.Background(), "file.pdf", minioConfig)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(resp.Data.Url)
 }
 ```

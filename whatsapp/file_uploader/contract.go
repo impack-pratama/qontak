@@ -18,6 +18,16 @@ type R2Config struct {
 	Key       string
 }
 
+type MinioConfig struct {
+	AccessKey string
+	SecretKey string
+	Endpoint  string
+	Region    string
+	Bucket    string
+	Key       string
+	UseSSL    bool
+}
+
 type Service interface {
 	// UploadFromUrl Upload a file to Qontak server, if there is any document you want to send via qontak whatsapp
 	//if there are no content type, the default content type will be application/octet-stream
@@ -28,4 +38,6 @@ type Service interface {
 	UploadFromS3(ctx context.Context, filename string, config S3Config) (response *UploadResponse, err error)
 	// UploadFromCloudflareR2 Upload a file from Cloudflare R2 to Qontak server
 	UploadFromCloudflareR2(ctx context.Context, filename string, config R2Config) (response *UploadResponse, err error)
+	// UploadFromMinio Upload a file from Minio to Qontak server
+	UploadFromMinio(ctx context.Context, filename string, config MinioConfig) (response *UploadResponse, err error)
 }
